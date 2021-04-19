@@ -2,8 +2,12 @@ aiofiles==0.4.0
 aiohttp==3.5.4
 asyncio==3.4.3
 fastai==1.0.57
-https://download.pytorch.org/whl/cpu/torch-1.1.0-cp37-cp37m-linux_x86_64.whl 1
-https://download.pytorch.org/whl/cpu/torchvision-0.3.0-cp37-cp37m-linux_x86_64.whl
+-f https://download.pytorch.org/whl/torch_stable.html
+torch==1.6.0+cpu
+-f https://download.pytorch.org/whl/torch_stable.html
+torchvision==0.7.0+cpu
+fastbook==0.0.12
+fastai==2.0.11
 numpy==1.16.4
 starlette==0.12.0
 uvicorn==0.7.1

@@ -10,4 +10,4 @@ fastai==2.0.11
 numpy==1.16.4
 starlette==0.12.0
 python-multipart==0.0.5
-uvicorn==-0.7.1
+uvicorn==-0.11.7

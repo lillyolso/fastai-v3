@@ -11,6 +11,7 @@ from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
+import requests
 
 export_file_url = 'https://drive.google.com/uc?export=download&id=1XoLYMFD2q3FRjE8oNRegeye3yiQIQuc8'
 export_file_name = 'export.pkl'
@@ -23,17 +24,19 @@ app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_headers=['X-Reques
 app.mount('/static', StaticFiles(directory='app/static'))
 
 
-async def download_file(url, dest):
-    if dest.exists(): return
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            data = await response.read()
-            with open(dest, 'wb') as f:
-                f.write(data)
+def download_file_from_google_drive(id, destination):
+    URL = "https://drive.google.com/uc?export=download&id=1XoLYMFD2q3FRjE8oNRegeye3yiQIQuc8"
+    session = requests.Session()
+    response = session.get(URL, params = { 'id' : id }, stream = True)
+    token = get_confirm_token(response)
+    if token:
+        params = { 'id' : id, 'confirm' : token }
+        response = session.get(URL, params = params, stream = True)
+    save_response_content(response, destination) 
 
 
 async def setup_learner():
-    await download_file(export_file_url, path / export_file_name)
+    await download_file_from_drive('1XoLYMFD2q3FRjE8oNRegeye3yiQIQuc8', path / export_file_name)
     try:
         learn = load_learner(path / export_file_name)
         return learn
@@ -70,3 +73,18 @@ async def analyze(request):
 if __name__ == '__main__':
     if 'serve' in sys.argv:
         uvicorn.run(app=app, host='0.0.0.0', port=5000, log_level="info")
+
+def get_confirm_token(response):
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            return value
+
+    return None
+
+def save_response_content(response, destination):
+    CHUNK_SIZE = 32768
+
+    with open(destination, "wb") as f:
+        for chunk in response.iter_content(CHUNK_SIZE):
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
